@@ -14,7 +14,7 @@ struct weiqi {
 };          
 int calc(struct weiqi *wq, int x, int y)          
 {
-}          
+}       
 
 
 输入描述:
