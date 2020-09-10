@@ -1,0 +1,168 @@
+#define _CRT_SECURE_NO_WARNINGS
+ 
+#include <stdio.h>
+#include <string.h>
+#include <stack>
+using namespace std;
+ 
+enum color {
+    NONE, WHITE, BLACK,         //棋子颜色，NONE表示未落子
+};
+struct weiqi {
+    enum color board[19][19];   //棋盘上每个位置的落子
+};
+struct point {
+    int x, y;                   //棋盘上的点（x，y）
+};
+ 
+int calc(struct weiqi *wq, int x, int y)
+{
+    //TODO:
+    int count = 0;                //定义要返回的总和
+    int state[19][19] = { 0 };    //定义状态矩阵：是否已被计算过
+    stack<point> pts;             //定义stack，用于放入同类点
+    if (wq->board[y][x] == 0) {
+        return 0;
+    }
+    else if (wq->board[y][x] == 1) {      //输入点为白的情况，输入点为黑时只有wq->board[y][x] == 2这一个区别
+        point pt;
+        pt.x = y;                 //下方读取时的实际棋盘和输入时的行、列其实是反过来的
+        pt.y = x;                 
+        pts.push(pt);
+        state[pt.x][pt.y] = 1;    //初始点
+        count++;
+        
+        //四方向寻找，如果找到就压入栈，没有则不进行操作
+        //下面循环也可以用递归代替，但如果棋盘很大要注意递归的层数
+        while (!pts.empty()) {
+            point ptop = pts.top();     //取出栈顶元素
+            pts.pop();                  //删除取出的元素
+            if (wq->board[ptop.x - 1][ptop.y] == 1 && state[ptop.x - 1][ptop.y] == 0) {
+                pt.x = ptop.x - 1;
+                pt.y = ptop.y;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+            if (wq->board[ptop.x + 1][ptop.y] == 1 && state[ptop.x + 1][ptop.y] == 0) {
+                pt.x = ptop.x + 1;
+                pt.y = ptop.y;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+            if (wq->board[ptop.x][ptop.y - 1] == 1 && state[ptop.x][ptop.y - 1] == 0) {
+                pt.x = ptop.x;
+                pt.y = ptop.y - 1;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+            if (wq->board[ptop.x][ptop.y + 1] == 1 && state[ptop.x][ptop.y + 1] == 0) {
+                pt.x = ptop.x;
+                pt.y = ptop.y + 1;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+        }
+    }
+    else if (wq->board[y][x] == 2) {
+        point pt;
+        pt.x = y;
+        pt.y = x;
+        pts.push(pt);
+        state[pt.x][pt.y] = 1;
+        count++;
+        while (!pts.empty()) {
+            point ptop = pts.top();
+            pts.pop();
+            if (wq->board[ptop.x - 1][ptop.y] == 2 && state[ptop.x - 1][ptop.y] == 0) {
+                pt.x = ptop.x - 1;
+                pt.y = ptop.y;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+            if (wq->board[ptop.x + 1][ptop.y] == 2 && state[ptop.x + 1][ptop.y] == 0) {
+                pt.x = ptop.x + 1;
+                pt.y = ptop.y;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+            if (wq->board[ptop.x][ptop.y - 1] == 2 && state[ptop.x][ptop.y - 1] == 0) {
+                pt.x = ptop.x;
+                pt.y = ptop.y - 1;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+            if (wq->board[ptop.x][ptop.y + 1] == 2 && state[ptop.x][ptop.y + 1] == 0) {
+                pt.x = ptop.x;
+                pt.y = ptop.y + 1;
+                pts.push(pt);
+                state[pt.x][pt.y] = 1;
+                count++;
+            }
+        }
+    }
+    return count;
+}
+ 
+int input(struct weiqi *wq, int *x, int *y)
+{
+    int row, col;
+    int ret;
+    char buf[80];
+ 
+    for (row = 0; row < 19; ++row) {
+        if (fgets(buf, sizeof(buf), stdin) == NULL)
+            return -1;
+        if (strlen(buf) < 19)
+            return -1;
+        for (col = 0; col < 19; ++col) {
+            switch (buf[col]) {
+            case '0':
+                wq->board[row][col] = NONE;
+                break;
+            case '1':
+                wq->board[row][col] = WHITE;
+                break;
+            case '2':
+                wq->board[row][col] = BLACK;
+                break;
+            default:
+                return -1;
+            }
+        }
+    }
+    ret = fscanf(stdin, "%d,%d\n", x, y);
+    if (ret != 2)
+        return -1;
+    for (row = 0; row < 19; ++row) {
+        for (col = 0; col < 19; ++col) {
+            fprintf(stderr, "%d ", wq->board[row][col]);
+        }
+        fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "x = %d, y = %d\n", *x, *y);
+    return 0;
+}
+ 
+int main()
+{
+    struct weiqi wq;
+    int x = 0, y = 0;
+    int cnt;
+ 
+    memset(&wq, 0, sizeof(wq));
+    if (input(&wq, &x, &y) < 0) {
+        fprintf(stderr, "error!\n");
+        return 1;
+    }
+    cnt = calc(&wq, x, y);
+ 
+    printf("%d\n", cnt);
+    return 0;
+}
